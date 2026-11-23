@@ -52,3 +52,6 @@ sdk-certs/
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# ---- 本机辅助脚本（含本机路径，不入库）----
+push-github.cmd
