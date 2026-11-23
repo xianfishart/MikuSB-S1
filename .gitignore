@@ -53,5 +53,8 @@ Thumbs.db
 desktop.ini
 .DS_Store
 
-# ---- 本机辅助脚本（含本机路径，不入库）----
+# ---- 本机辅助脚本 / 一次性补丁（含本机路径，不入库）----
 push-github.cmd
+_*.py
+_check_lua.txt
+MikuSB-修复记录-*.txt
