@@ -1,0 +1,71 @@
+{
+  "HttpServer": {
+    "BindAddress": "0.0.0.0",
+    "PublicAddress": "127.0.0.1",
+    "Port": 21500,
+    "EnableLog": true,
+    "AdminPort": 21400,
+    "AdminToken": "change-me-please",
+    "AdminWebRoot": "Web",
+    "OpenAdminPanel": true
+  },
+  "GameServer": {
+    "BindAddress": "0.0.0.0",
+    "PublicAddress": "127.0.0.1",
+    "Port": 21000,
+    "KcpAliveMs": 45000,
+    "DatabaseName": "Miku.db",
+    "GameServerId": "MikuSB_S1",
+    "GameServerName": "MikuSB S1"
+  },
+  "Path": {
+    "ResourcePath": "Resources",
+    "ConfigPath": "Config",
+    "DatabasePath": "Config/Database",
+    "HandbookPath": "Config/Handbook",
+    "LogPath": "Config/Logs",
+    "DataPath": "Config/Data"
+  },
+  "ServerOption": {
+    "Language": "CHS",
+    "FallbackLanguage": "EN",
+    "DefaultPermissions": [
+      "Admin"
+    ],
+    "ServerProfile": {
+      "Name": "Miku-chan",
+      "Signature": "SnowBreak Private Server",
+      "Uid": 80,
+      "Level": 100,
+      "Gender": 1
+    },
+    "ShowServerProfileAsFriend": false,
+    "VanillaStart": true,
+    "EnableGmMenu": true,
+    "AutoCreateUser": true,
+    "SavePersonalDebugFile": false,
+    "AutoSendResponseWhenNoHandler": false,
+    "EnableDebug": true,
+    "DebugMessage": true,
+    "DebugDetailMessage": true,
+    "DebugNoHandlerPacket": true,
+    "PinDlcActivityId": 99
+  },
+  "Proxy": {
+    "Enabled": true,
+    "Port": 18888
+  },
+  "Loader": {
+    "GamePath": "C:\\Path\\To\\SnowBreak\\Game\\Binaries\\Win64\\Game.exe",
+    "PatchPaths": [
+      "Patch\\MikuSB-Patch.dll"
+    ],
+    "Arguments": [
+      "-FeatureLevelES31",
+      "-channelid=seasun",
+      "-NoSplash",
+      "-userdir=C:\\Path\\To\\SnowBreak\\S1\\Client_User_Data"
+    ],
+    "SetAllProxy": false
+  }
+}

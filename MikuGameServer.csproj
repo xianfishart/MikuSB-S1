@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>MikuGameServer</AssemblyName>
+    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+  <PropertyGroup>
+    <LangVersion>14.0</LangVersion>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
+  </PropertyGroup>
+  <PropertyGroup />
+  <ItemGroup />
+  <ItemGroup>
+    <Reference Include="MikuCommon">
+      <HintPath>MikuCommon.dll</HintPath>
+    </Reference>
+    <Reference Include="TcpSharp">
+      <HintPath>TcpSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="MikuProto">
+      <HintPath>MikuProto.dll</HintPath>
+    </Reference>
+    <Reference Include="Google.Protobuf">
+      <HintPath>Google.Protobuf.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="SqlSugar">
+      <HintPath>SqlSugar.dll</HintPath>
+    </Reference>
+    <Reference Include="MikuSB.Loader">
+      <HintPath>MikuSB.Loader.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>
