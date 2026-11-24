@@ -159,6 +159,25 @@ public static class DlcMainEntry
 		list.Add("local function dmFindMain() local m for _,w in pairs(UI.tbWidget or {}) do if type(w) == [[table]] and tostring(w.sName) == [[main]] then m = w end end return m end");
 		list.Add("local DM_BTNS = { [[BtnDLC]], [[NewDLC]], [[BlankDLC]], [[DLCLock]] }");
 		list.Add("local function dmGetVis(w) return w.Visibility end");
+		// 第 547 节（2026-11-24 21:32）：3.6.0 客户端的海报大图是 BlankDLC / Image_48，
+		// 老 BuildFix 的 DM_BTNS 只有四个按钮（3.2.0 时代），切期后这两张图被 BuildHide
+		// 收成 Collapsed 却没人恢复，只剩「预告 / N 天」小标签。显示态补一层海报恢复。
+		// TextBlock_82 的 (NULL) 描述文案与 ImgLock 锁图标按原设计保持收起 —— 它们本来就
+		// 不该显示，一起放出来反而会在海报上方多一行 NULL。
+		// 隐藏态（1~4 期 / 游戏默认）走 BuildHide，bMikuDlcWantShow=false，dmShow 首行即
+		// return，这段不会执行，隐藏规则完全不受影响。
+		list.Add("local POSTER_BTNS = { [[BlankDLC]], [[Image_48]] }");
+		list.Add("local QUIET_BTNS = { [[TextBlock_82]], [[ImgLock]] }");
+		list.Add("local function dmPoster(m)");
+		list.Add("if type(m) ~= [[table]] then return end");
+		list.Add("local t = os.clock()");
+		list.Add("if t - (_G.__dmLastPoster or 0) < 0.3 then return end");
+		list.Add("_G.__dmLastPoster = t");
+		list.Add("local W = _G.WidgetUtils");
+		list.Add("if type(W) ~= [[table]] then return end");
+		list.Add("for i = 1, #POSTER_BTNS do local w = m[POSTER_BTNS[i]] if w ~= nil then local ok, v = pcall(dmGetVis, w) if ok and v == 1 then pcall(W.SelfHitTestInvisible, w) end end end");
+		list.Add("for i = 1, #QUIET_BTNS do local w = m[QUIET_BTNS[i]] if w ~= nil then local ok, v = pcall(dmGetVis, w) if ok and v ~= 1 then pcall(W.Collapsed, w) end end end");
+		list.Add("end");
 		list.Add("local function dmConfFix()");
 		list.Add("if not (DLC_Logic and type(DLC_Logic.GetCurConf) == [[function]]) then return end");
 		list.Add("local ok, c = pcall(DLC_Logic.GetCurConf)");
@@ -184,6 +203,7 @@ public static class DlcMainEntry
 		list.Add("if type(m) ~= [[table]] or m.BtnDLC == nil then m = dmFindMain() _G.__dmMain = m end");
 		list.Add("if type(m) ~= [[table]] then return end");
 		list.Add("if m.bMikuDlcHidden then m.bMikuDlcHidden = nil if type(m.bMikuDlcShow) == [[function]] then m.ShowBtnDlc = m.bMikuDlcShow end m.bMikuDlcShow = nil end");
+		list.Add("pcall(dmPoster, m)");
 		list.Add("for i = 1, 4 do local w = m[DM_BTNS[i]] if w ~= nil then local ok, v = pcall(dmGetVis, w) if ok and v == 0 then return end end end");
 		list.Add("local t = os.clock()");
 		list.Add("if t - (_G.__dmLastShow or 0) < 0.1 then return end");
