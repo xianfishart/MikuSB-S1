@@ -2691,7 +2691,7 @@ _G.__ddDbg = function() return #tbDdList, nDdHit, nDdLog end";
 	/// </summary>
 	public const string StarWishHallFix = "-- 第 565 节：第 34 期「心愿栽培」准备星祈树 3/4 不推进\n-- 现象：102（神经调理）正常，103（返回基地大厅1层）永远 0/1，走到大厅也没反应；\n--       103 过掉之后 104（查看星祈树）点树同样没反应。\n-- 原因（客户端 140 版没跟上活动改版，三处死代码）：\n--   ① House.House.OnPlayerTrans / OnElevatorArrived / HouseTalk.CompleteBackToHallQuest\n--      的完成钩子写死老任务号 51/101，本期的 103 没有任何代码路径去上报。\n--   ② HouseFurniture.OnInteractedHallStarWishFurniture 第一行就是\n--      `if StarWishLogic:GetActId() ~= 127 then return false end`，\n--      本期 GetActId(=180/1) 是 1，点树直接 return，什么都不做。\n--   ③ StarWishLogic.CheckCondition 里 `if HouseTaskGuide:GetCurrentTask() == nil then return false`，\n--      而 GetCurrentTask 只在「遇到已完成的家园指引任务」时才返回非 nil，\n--      11 条指引全未完成 → 恒 nil → 所有星祈任务的 CheckCondition 恒 false。\n-- 做法：盯住「人在基地大厅」这个状态，103 或 104 在进行中就替客户端补一次\n--       StarWishLogic:SetStoryQuestCompleted(id, 1)，等价于正常流程那次上报。\n--       走的是官方接口，服务端写 180/(100+3*id) 并 sync 回来。\n-- 幂等：__MikuSwHallV2 标记 + done[id] 标记 + 12 秒节流。\n\nlocal LOG = \"D:/DSH/.tools/_swhall.log\"\nlocal function log(...)\n  local f = io.open(LOG, \"a\")\n  if not f then return end\n  local t = {}\n  for i = 1, select(\"#\", ...) do t[i] = tostring((select(i, ...))) end\n  f:write(string.format(\"[%d] \", os.time()), table.concat(t, \" \"), \"\\n\")\n  f:close()\nend\n\nif rawget(_G, \"__MikuSwHallV2\") == true then\n  return \"ok\"\nend\nrawset(_G, \"__MikuSwHallV2\", true)\n\nlocal HL = rawget(_G, \"HouseLogic\")\nlocal SL = rawget(_G, \"StarWishLogic\")\nlocal UE4 = rawget(_G, \"UE4\")\nlocal GI = rawget(_G, \"GetGameIns\")\nif type(HL) ~= \"table\" or type(SL) ~= \"table\" or type(UE4) ~= \"table\" or type(GI) ~= \"function\" then\n  log(\"skip: missing deps\", type(HL), type(SL), type(UE4), type(GI))\n  return \"ok\"\nend\n\n-- 本补丁负责的房内任务：103 走进大厅、104 查看星祈树（101/102 客户端自己能报）\nlocal TARGETS = { 103, 104 }\nlocal done = {}\nlocal lastAct = 0\nlocal lastState = \"\"\nlocal ticks = 0\n\nlocal function state()\n  local gm = nil\n  pcall(function() gm = HL:GetGameMode() end)\n  local level = \"?\"\n  local tags = -1\n  pcall(function()\n    local gi = GI()\n    level = UE4.UGameplayStatics.GetCurrentLevelName(gi, true)\n    local arr = UE4.UGameplayStatics.GetAllActorsOfClassWithTag(gi, UE4.AActor, \"StarWish_interact\")\n    tags = arr and arr:Length() or -1\n  end)\n  local prog = {}\n  for _, id in ipairs(TARGETS) do\n    local v = nil\n    pcall(function() v = SL:CheckInProgress(id) end)\n    prog[#prog + 1] = tostring(v)\n  end\n  local cur = nil\n  pcall(function() cur = SL:GetCurStoryQuest() end)\n  return level, (gm ~= nil), tostring(HL.nAreaId), tags, table.concat(prog, \",\"), tostring(cur)\nend\n\nlocal function tick()\n  ticks = ticks + 1\n  if ticks > 3600 then return end -- 最多看 1 小时（4s 一次）\n  pcall(function()\n    local level, inHouse, areaId, tags, prog, cur = state()\n    local sig = table.concat({ level, tostring(inHouse), areaId, tostring(tags), prog, cur }, \"|\")\n    if sig ~= lastState then\n      lastState = sig\n      log(\"state\", sig)\n    end\n    if (os.time() - lastAct) > 12 then\n      -- 只在「确实在大厅」时补，避免在作战/主界面误触发\n      local inHall = (tags > 0) or (inHouse and tostring(areaId) == \"0\")\n      if inHall then\n        for _, id in ipairs(TARGETS) do\n          if not done[id] then\n            local p = nil\n            pcall(function() p = SL:CheckInProgress(id) end)\n            if p == true then\n              local ok, err = pcall(function() return SL:SetStoryQuestCompleted(id, 1) end)\n              log(\"complete\" .. id, tostring(ok), tostring(err), \"level=\" .. level, \"tags=\" .. tostring(tags), \"area=\" .. areaId)\n              lastAct = os.time()\n              done[id] = ok\n              break\n            end\n          end\n        end\n      end\n    end\n  end)\n  pcall(function() UE4.Timer.Add(4.0, tick) end)\nend\n\nlog(\"install v2\", TARGETS[1], TARGETS[2])\npcall(function() UE4.Timer.Add(4.0, tick) end)\nreturn \"ok\"\n";
 
-	private static readonly string[] Order = new string[68]
+	private static readonly string[] Order = new string[70]
 	{
 		"EventSystemGuard", "GlobalTimeWindows", "ActivityFaceQuiet", "DlcWindowFix",
 		"DlcMissionBoard", "DlcShopWindows", "DonoDuelArenaWindows", "DonoDuelBaseSpawn",
@@ -2701,7 +2701,8 @@ _G.__ddDbg = function() return #tbDdList, nDdHit, nDdLog end";
 		"BagRogueEndNode", "BagRogueShopAffix", "DefaultModeWindows", "BossPvpFix",
 		"PrologueSkip", "LevelUpQuiet", "NoFormerShop", "Dlc24Unlock", "PaintFix", "DormAvatar",
 		"LoginGuard", "ThrowChallengeContinue", "LogiRebuildUnlock",
-		"LogiRebuildNoConfirm", "LogiRebuildKeepIndex", "Rogue3SeasonOpen",
+		"LogiRebuildNoConfirm", "LogiRebuildNoConfirm2", "LogiRebuildKeepIndex", "LogiRebuildKeepIndexInst",
+		"Rogue3SeasonOpen",
 		"Rogue3BlessFix", "Rogue3WarWindowFix", "VcTrialWindows", "Dlc11StoryLevel",
 		"ShootScoreUnlock", "Act283Open", "ChessWin", "FarmWarSlotFix", "FarmWarGrowFix",
 		"FarmWarItemFix", "FarmWarLevelFix", "FarmWarPlantFix", "AlienPalUnlockFix",
@@ -3006,6 +3007,53 @@ _G.__ddDbg = function() return #tbDdList, nDdHit, nDdLog end";
 	public const string LogiRebuildNoConfirm = "local function mikuRbNoCb()\nlocal P = package\nif type(P) ~= [[table]] or type(P.loaded) ~= [[table]] then return end\nif type(UI) ~= [[table]] or type(UI.Open) ~= [[function]] then return end\nif _G.MikuRbNoCbFn == UI.Open then return end\nlocal NEEDLE = string.char(229,176,134,232,162,171,233,135,141,228,191,174)\nlocal prev = UI.Open\nlocal wrap = function(w, a1, a2, ...)\nif type(a1) == [[string]] and type(a2) == [[function]] then\nif string.find(a1, NEEDLE, 1, true) then\nlocal okw, nm = pcall(tostring, w)\nif okw and nm == [[MessageBox]] then\nlocal ok = pcall(a2)\nif ok then return end\nend\nend\nend\nreturn prev(w, a1, a2, ...)\nend\n_G.MikuRbNoCbFn = wrap\nUI.Open = wrap\nend\nmikuRbNoCb()";
 
 	/// <summary>
+	/// LogiRebuildNoConfirm2：第 569 节，补第 303 节漏掉的「是否切换」确认弹窗。
+	/// 实测两句文案均走 UI.Open(MessageBox, 文案, 确认回调)：
+	///   TxtRoleRebuild.Tips1「将被重修」 / TxtRebuildTips3「取消已定向选择…是否切换？」
+	/// 命中即 pcall(回调) 跳过开窗。带 UE4.Timer 每秒自愈重装，
+	/// 解决登录早期 UI 未就绪与 UI.Open 被其它补丁覆盖（第303节补丁失效）两个问题。
+	/// 开关名 LogiRebuildNoConfirm2；禁用字符 +&lt;&gt;&amp;' 已规避。
+	/// </summary>
+	public const string LogiRebuildNoConfirm2 = @"
+local function mikuRbNoConfirm2()
+local function install()
+local U = rawget(_G, [[UI]])
+if type(U) ~= [[table]] or type(U.Open) ~= [[function]] then return false end
+local myFn = rawget(_G, [[MikuRbNoConfirm2Fn]])
+if myFn ~= nil and U.Open == myFn then return true end
+local N1 = string.char(229,176,134,232,162,171,233,135,141,228,191,174)
+local N2 = string.char(229,143,150,230,182,136,229,183,178,229,174,154,229,144,145,233,128,137,230,139,169)
+local prev = U.Open
+local wrap = function(w, a1, a2, ...)
+local okw, nm = pcall(tostring, w)
+if okw and nm == [[MessageBox]] and type(a1) == [[string]] and type(a2) == [[function]] then
+if string.find(a1, N1, 1, true) or string.find(a1, N2, 1, true) then
+local ok = pcall(a2)
+if ok then return end
+end
+end
+return prev(w, a1, a2, ...)
+end
+rawset(_G, [[MikuRbNoConfirm2Fn]], wrap)
+U.Open = wrap
+return true
+end
+if install() then return end
+local UE4 = rawget(_G, [[UE4]])
+if type(UE4) ~= [[table]] or type(UE4.Timer) ~= [[table]] then return end
+local tries = 0
+local function tick()
+if install() then return end
+tries = tries - (0 - 1)
+if tries == 300 then return end
+pcall(function() UE4.Timer.Add(1.0, tick) end)
+end
+pcall(function() UE4.Timer.Add(1.0, tick) end)
+end
+mikuRbNoConfirm2()
+return [[ok]]";
+
+	/// <summary>
 	/// LogiRebuildKeepIndex：后勤基础重修完成后，面板会自动把选中项跳回第 1 条，
 	/// 想连着刷同一条就得每次都重新点一下。根因在
 	/// uw_logistics_rebuildoriginal.SetAffixPanelState(2) 里：
@@ -3017,6 +3065,76 @@ _G.__ddDbg = function() return #tbDdList, nDdHit, nDdLog end";
 	/// 面板模块可能被重载，所以每次发请求前都再补装一次（幂等靠 _G 记住上一层函数）。
 	/// </summary>
 	public const string LogiRebuildKeepIndex = "local function mikuRbKeepIdx()\nlocal P = package\nif type(P) ~= [[table]] or type(P.loaded) ~= [[table]] then return end\nlocal KEY = [[UMG.Support.LogisRebuild.Widgets.uw_logistics_rebuildoriginal]]\nlocal function installPanel()\nlocal mod = P.loaded[KEY]\nif type(mod) ~= [[table]] then return end\nlocal old = mod.UpdateRebuildState\nif type(old) ~= [[function]] then return end\nif _G.MikuKeepIdxWrap == old then return end\nlocal wrap = function(self, idx)\nif idx == nil and _G.MikuKeepPend == true then\n_G.MikuKeepPend = false\nlocal k = _G.MikuKeepIdx\nif k == 1 or k == 2 then idx = k end\nend\nreturn old(self, idx)\nend\n_G.MikuKeepIdxWrap = wrap\nmod.UpdateRebuildState = wrap\nend\ninstallPanel()\nif type(Logistics) == [[table]] and type(Logistics.Req_ResetInitialAffix) == [[function]] and _G.MikuKeepReqWrap ~= Logistics.Req_ResetInitialAffix then\nlocal oreq = Logistics.Req_ResetInitialAffix\nlocal rw = function(card, index, fixedId, cb)\n_G.MikuKeepIdx = index\n_G.MikuKeepPend = true\ninstallPanel()\nreturn oreq(card, index, fixedId, cb)\nend\n_G.MikuKeepReqWrap = rw\nLogistics.Req_ResetInitialAffix = rw\nend\nend\nmikuRbKeepIdx()";
+
+	/// <summary>
+	/// LogiRebuildKeepIndexInst：第 568 节，实例级「修完不跳回第1条」。
+	/// 第 304 节补丁只改模块表，UnLua 实例调用自己拷贝的旧函数故失效。
+	/// 本补丁从 Req 回调闭包 upvalue=self 抓实例，在实例上包 UpdateRebuildState，
+	/// 拦第二次无参刷新把 index 补回。开关名 LogiRebuildKeepIndexInst。
+	/// </summary>
+	public const string LogiRebuildKeepIndexInst = @"-- 第 568 节：后勤基础重修「修完跳回第1条」实例级修复
+-- 根因：第 304 节补丁挂在 package.loaded 模块表上，UnLua 实例 self 用的是
+-- 创建时拷贝到实例表的旧函数，模块表改动到不了实例。实测一次重修触发两次
+-- 刷新：第一次 UpdateRebuildState(2) 正确；第二次 UpdateAffixPanel(card) 无
+-- 第二参，走 SetAffixPanelState(1) 再 UpdateRebuildState() 无参，AffixIndex
+-- 被 index or 1 兜成 1，紫框跳回第1条。
+-- 修法：Req 发出时从回调闭包 upvalue=self 抓真正实例，在实例上包
+-- UpdateRebuildState：无参刷新来时把 index 补回并清标记，只纠正这一次。
+local function mikuRbKeepIdxInst()
+if type(debug) ~= [[table]] or type(debug.getupvalue) ~= [[function]] then return end
+local function looksLikePanel(t)
+if type(t) ~= [[table]] then return false end
+if rawget(t, [[AffixIndex]]) ~= nil then return true end
+if rawget(t, [[LogiCard]]) ~= nil then return true end
+if type(rawget(t, [[UpdateRebuildState]])) == [[function]] then return true end
+return false
+end
+local function scanFn(fn, seen)
+if type(fn) ~= [[function]] or seen[fn] then return nil end
+seen[fn] = true
+for i = 1, 64 do
+local n, v = debug.getupvalue(fn, i)
+if not n then break end
+if looksLikePanel(v) then return v end
+if type(v) == [[function]] then
+local inst = scanFn(v, seen)
+if inst then return inst end
+end
+end
+return nil
+end
+local function wrapPanel(inst)
+if type(inst) ~= [[table]] then return false end
+if rawget(inst, [[__MikuRbKeepInst]]) == true then return true end
+local old = inst.UpdateRebuildState
+if type(old) ~= [[function]] then return false end
+inst.UpdateRebuildState = function(self, idx)
+local keep = rawget(_G, [[MikuRbKeepInstIdx]])
+local pend = rawget(_G, [[MikuRbKeepInstPend]])
+if idx == nil and pend == true and (keep == 1 or keep == 2) then
+idx = keep
+rawset(_G, [[MikuRbKeepInstPend]], false)
+end
+return old(self, idx)
+end
+rawset(inst, [[__MikuRbKeepInst]], true)
+return true
+end
+local L = rawget(_G, [[Logistics]])
+if type(L) ~= [[table]] or type(L.Req_ResetInitialAffix) ~= [[function]] then return end
+if rawget(_G, [[MikuRbKeepInstReq]]) == L.Req_ResetInitialAffix then return end
+local oreq = L.Req_ResetInitialAffix
+local rq = function(card, index, fixedId, cb)
+rawset(_G, [[MikuRbKeepInstIdx]], index)
+rawset(_G, [[MikuRbKeepInstPend]], true)
+local inst = scanFn(cb, {})
+if inst then wrapPanel(inst) end
+return oreq(card, index, fixedId, cb)
+end
+rawset(_G, [[MikuRbKeepInstReq]], rq)
+L.Req_ResetInitialAffix = rq
+end
+mikuRbKeepIdxInst()";
 
 	/// <summary>
 	/// LogiCardLock：后勤详情页 PanelLock 下的 BtnLock 点不动。
@@ -3426,7 +3544,9 @@ _G.__ddDbg = function() return #tbDdList, nDdHit, nDdLog end";
 			"ThrowChallengeContinue" => ThrowChallengeContinue,
 			"LogiRebuildUnlock" => LogiRebuildUnlock,
 			"LogiRebuildNoConfirm" => LogiRebuildNoConfirm,
+			"LogiRebuildNoConfirm2" => LogiRebuildNoConfirm2,
 			"LogiRebuildKeepIndex" => LogiRebuildKeepIndex,
+			"LogiRebuildKeepIndexInst" => LogiRebuildKeepIndexInst,
 			"Rogue3SeasonOpen" => Rogue3SeasonOpen,
 			"Rogue3BlessFix" => Rogue3BlessFix,
 			"Rogue3WarWindowFix" => Rogue3WarWindowFix,
