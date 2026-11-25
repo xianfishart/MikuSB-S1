@@ -367,7 +367,11 @@ end
 		{
 			Log($"dump {name} 失败: {ex.Message}");
 		}
-		return "pcall(function() local f = io.open([[" + path + "]], [[r]]) if f == nil then return end local s = f:read([[*a]]) f:close() local fn = loadstring(s) if fn then fn() end end)";
+		// 第 558 节（2026-11-25）：这个客户端是 Lua 5.3+，type(loadstring)==nil（只有 load）。
+		// 以前写死 loadstring(s)，拿不到函数就静默跳过 —— 整套 BuildFix / BuildHide
+		// 在本机从没执行过（_G.__DMV 一直 nil、_dlchide.log 无新记录）。
+		// 改成 (loadstring or load)(s)：两个名字都试，谁都行。
+		return "pcall(function() local f = io.open([[" + path + "]], [[r]]) if f == nil then return end local s = f:read([[*a]]) f:close() local ld = loadstring or load if type(ld) ~= [[function]] then return end local fn = ld(s) if fn then fn() end end)";
 	}
 
 	private static void Send(Connection conn, string lua)
