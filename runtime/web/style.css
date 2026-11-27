@@ -221,6 +221,20 @@ button.small { padding: 3px 9px; font-size: 12px; }
 .quick-btn-vircapture { border-left: 3px solid var(--accent); background: var(--panel-2); }
 .quick-btn-vircapture:hover { background: var(--panel); }
 
+/* 培养材料（武器/角色/家具）专属一栏（2026-11-27 追加）：同样先分隔带再成组，
+   描边换成绿色，和上面的新星开拓（蓝色）一眼能区分开。 */
+.quick-divider-grow span { color: var(--ok); }
+.quick-grid-grow { margin-bottom: 8px; }
+.quick-btn-grow { border-left: 3px solid var(--ok); background: var(--panel-2); }
+.quick-btn-grow:hover { background: var(--panel); }
+
+/* 宿舍玩法专属一栏（2026-11-27 追加）：小游戏进度类按钮，描边用琥珀色，
+   与材料与货币（绿）、新星开拓（蓝）三色区分。 */
+.quick-divider-dorm span { color: var(--warn); }
+.quick-grid-dorm { margin-bottom: 8px; }
+.quick-btn-dorm { border-left: 3px solid var(--warn); background: var(--panel-2); }
+.quick-btn-dorm:hover { background: var(--panel); }
+
 textarea { width: 100%; min-height: 74px; resize: vertical; }
 
 pre.out {

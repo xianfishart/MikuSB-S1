@@ -23,6 +23,7 @@ using MikuSB.GameServer.Server;
 using MikuSB.GameServer.Server.CallGS.Handlers.Scene;
 using MikuSB.GameServer.Server.CallGS.Handlers.Shop;
 using MikuSB.GameServer.Server.CallGS.Handlers.VirCapture;
+using MikuSB.GameServer.Server.CallGS.Handlers.Weapon;
 using MikuSB.GameServer.Server.Packet.Recv.Social;
 using MikuSB.Proto;
 using MikuSB.TcpSharp;
@@ -179,6 +180,13 @@ public class PlayerInstance(PlayerGameData data)
 		}
 		Data.EnsureDisplayName();
 		await CharacterManager.RepairCharacterWeapons();
+		// 第 581 节：武器配件位补解锁。原版只在客户端主动调 Weapon_GetUpgradePartUnlock 时
+		// 才写 Gid=112 的解锁位，服务端升级路径从来没补过 —— 结果所有 ≥50 级的武器
+		// 在配件页都显示「N 级解锁」。登录时统一补一次（幂等，已解锁的不会重复写）。
+		if (WeaponPartAward.RepairUnlocked(this))
+		{
+			DatabaseHelper.SaveDatabaseType(Data);
+		}
 		ItemSanitizer.Cleanup(this);
 		// 固定大厅场景（尘白之间 / 世界树营地）在登录时把 139/401~414（14 格）全部对齐到 132/1，
 		// 否则重登会被候选池随机漂移成别的 3D 情景。（第 140 节；第 350 节把 13 格改成 14 格）

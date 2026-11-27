@@ -212,6 +212,13 @@ const STRINGS = {
     'quick.bluecoin': '蓝图币 +50 万（新星开拓 · 建筑升级/员工培训）',
     'quick.logisticsmat': '后勤刷词条材料各 1000（重修额度/人事额度/特定重修额度/重修申请/特级职级认证）',
     'quick.rankcert': '四档职级认证各 10000（初级/中级/高级/特级）',
+    'quick.group.grow': '材料与货币（武器 / 角色 / 家具 / 后勤 / 职级）',
+    'quick.group.growNote': '※ 这一栏只发材料、货币与认证：武器突破（含合成颗粒）与强化、角色升级记录、家具货币、通用银、后勤刷词条材料、四档职级认证；上面的按钮不再重复这些。',
+    'quick.group.dorm': '宿舍玩法（心动水弹 / 冰趣蜜弹 / 推币大赢家 / 猜心对局 / 神经调理）',
+    'quick.group.dormNote': '※ 这一栏是基地宿舍区的小游戏进度：满级只改等级与经验，成就与等级奖励仍回游戏内「一键领取」正常拿。',
+    'quick.weaponmat': '武器材料各 10000（合成颗粒/芳烃塑料/单极纤维/碳原子板/优选强化套件/精致强化套件/珍稀强化套件）',
+    'quick.roleexp': '角色升级材料各 10000（普通/优秀/精英战斗记录）',
+    'quick.housemat': '家具购买 10000（奥普奖券）',
     'token.title': '活动代币合集',
     'token.era': '选择期号',
     'token.eraOption': '第 {0} 期',
@@ -405,8 +412,16 @@ const STRINGS = {
     'quick.massagemax': 'Massage all level rewards (to Lv.15)',
     'quick.newstar15': 'Star Master +138000 EXP (≈Lv.15, repeatable)',
     'quick.goodpartner': 'Good Partner tickets x10000 (VirCapture quick persuade)',
+    'quick.bluecoin': 'Blueprint coins +500,000 (VirCapture building upgrade / staff training)',
     'quick.logisticsmat': 'Logistic word-refresh materials x1000 each (5 kinds)',
     'quick.rankcert': 'Rank certificates x10000 each (junior / mid / senior / special)',
+    'quick.group.grow': 'Materials & currency (weapon / character / furniture / logistics / rank)',
+    'quick.group.growNote': '* This row only hands out materials, currency and certificates: weapon break (incl. synthesis particle) and enhance materials, level-up records, furniture tickets, credits, logistic refresh materials and rank certificates. The buttons above no longer duplicate them.',
+    'quick.group.dorm': 'Dorm minigames (LoveGun / Honey Pop / Coin Pusher / Guess Poker / Massage)',
+    'quick.group.dormNote': '* These only push minigame progress to max level and experience; achievements and level rewards are still claimed normally in game.',
+    'quick.weaponmat': 'Weapon materials x10000 each (synthesis particle / phenylene / mono-fiber / carbon plate / 3 enhance kits)',
+    'quick.roleexp': 'Character level-up records x10000 each (normal / fine / elite)',
+    'quick.housemat': 'Furniture tickets x10000 (OppTicket)',
     'token.title': 'Activity shop tokens',
     'token.era': 'Era',
     'token.eraOption': 'Era {0}',
@@ -601,8 +616,16 @@ const STRINGS = {
     'quick.massagemax': '神經調理等級獎勵全領（15 級）',
     'quick.newstar15': '新星開拓 +138000 經驗（≈15 級，可重複點擊）',
     'quick.goodpartner': '好夥伴券 10000 個（新星開拓快捷勸降）',
+    'quick.bluecoin': '藍圖幣 +50 萬（新星開拓 · 建築升級／員工培訓）',
     'quick.logisticsmat': '後勤刷詞條材料各 1000（重脩額度／人事額度／特定重脩額度／重脩申請／特級職級認證）',
     'quick.rankcert': '四檔職級認證各 10000（初級／中級／高級／特級）',
+    'quick.group.grow': '材料與貨幣（武器／角色／家具／後勤／職級）',
+    'quick.group.growNote': '※ 這一欄只發材料、貨幣與認證：武器突破（含合成顆粒）與強化、角色升級記錄、家具貨幣、通用銀、後勤刷詞條材料、四檔職級認證；上面的按鈕不再重複這些。',
+    'quick.group.dorm': '宿舍玩法（心動水彈／冰趣蜜彈／推幣大贏家／猜心對局／神經調理）',
+    'quick.group.dormNote': '※ 這一欄是基地宿舍區的小遊戲進度：滿級只改等級與經驗，成就與等級獎勵仍回遊戲內「一鍵領取」正常拿。',
+    'quick.weaponmat': '武器材料各 10000（合成顆粒／芳烴塑料／單極纖維／碳原子板／優選強化套件／精緻強化套件／珍稀強化套件）',
+    'quick.roleexp': '角色升級材料各 10000（普通／優秀／精英戰鬥記錄）',
+    'quick.housemat': '家具購買 10000（奧普獎券）',
     'token.title': '活動代幣合集',
     'token.era': '選擇期號',
     'token.eraOption': '第 {0} 期',
@@ -3004,33 +3027,10 @@ const QUICK_ACTIONS = [
   { id: 'call', cmd: 'giveall call -1' },
   { id: 'gadd', cmd: 'girl add -1' },
   { id: 'skin', cmd: 'giveall skin -1' },
-  // 2026-11-11 追加：纯货币没有 giveall 入口，走新增的 money 命令（修复记录第 218 节）。
-  { id: 'silver', cmd: 'money silver 10000000' },
-  // 2026-11-13 追加：后勤刷词条材料各 1000（重修额度 / 人事额度 / 特定重修额度 /
-  // 重修申请 / 特级职级认证），物品口径见修复记录第 275 节。
-  // 2026-11-13 起紧跟「通用银」按钮，材料类按钮和货币放在一起。
-  { id: 'logisticsmat', cmd: 'logisticsmat 1000' },
-  // 2026-11-14 追加：四档职级认证各 10000（初级/中级/高级/特级）。
-  // 坐标 [5,3,1,1]~[5,3,1,4] 只靠 Level 区分，见 supplies.json 的 supportexp001~004。
-  { id: 'rankcert', cmd: 'rankcert 10000' },
-  // 2026-11-12 追加：心动水弹（LoveGun / 温泉中心水枪）一键满级。等级落库在 101/15011，
-  // 不带参数即满级（15 级）；不碰领奖位图，奖励仍按正常一键领取（修复记录第 259 节）。
-  { id: 'watergun', cmd: 'watergun' },
-  // 2026-11-12 追加：心动水弹 20 条成就（20101~20120）一次性写满进度，只解锁不发奖，
-  // 奖励回活动界面「一键领取」（修复记录第 264 节）。
-  { id: 'watergunach', cmd: 'watergunach' },
-  // 2026-11-12 追加：猜心对局（GuessPoker）经验。等级不落库，命令直接对经验属性做加法，
-  // 点一次加 1320 经验，等级由经验换算（修复记录第 257 / 272 节）。
-  // 2026-11-13 起排到「冰趣蜜弹」之前，方便按小游戏顺序点。
-  { id: 'poker1320', cmd: 'guesspoker 1320' },
-  // 2026-11-13 追加：冰趣蜜弹（ThrowGame / 基地投掷）一键满级。等级落库在 101/17003，
-  // 级内经验 17004 清零；不碰领奖标记 17020+等级，奖励仍按正常领取（修复记录第 267 节）。
-  { id: 'throwlevel', cmd: 'throwlevel' },
-  // 2026-11-13 追加：推币大赢家（CoinPusher / 基地街机）一键满级。等级不落库，由累计经验
-  // 101/18002 换算，命令直接写满 12000；不碰领奖位图 18003（修复记录第 267 节）。
-  { id: 'arcadelevel', cmd: 'arcadelevel' },
-  // 2026-11-13 追加：神经调理等级奖励一次全领（等级直接写满 15，1~15 档奖励全发）。
-  { id: 'massagemax', cmd: 'massagemax' },
+  // 2026-11-27 起「通用银 / 后勤材料 / 职级认证」三个按钮移到下面的 GROWTH_ACTIONS
+  // 那一栏（材料与货币），不再和角色/武器/皮肤这些获取类按钮混排。
+  // 宿舍玩法那六个按钮（心动水弹 / 冰趣蜜弹 / 推币大赢家 / 猜心对局 / 神经调理）
+  // 同日移到下面的 DORM_ACTIONS，单独一栏渲染。
 ];
 
 // 新星开拓（Star Master / VirCapture）专属一栏（2026-11-15 追加，修复记录第 344 节）。
@@ -3051,8 +3051,55 @@ const VIRCAPTURE_ACTIONS = [
   { id: 'skillcert', cmd: 'skillcert 10000' },
 ];
 
-// 点击时统一在合并表里找按钮对应的命令，避免两组分开绑定。
-const ALL_QUICK_ACTIONS = QUICK_ACTIONS.concat(VIRCAPTURE_ACTIONS);
+// 材料与货币专属一栏（2026-11-27 追加）：武器突破/强化材料、角色升级战斗记录、
+// 家具货币奥普奖券，以及从通用区搬过来的通用银、后勤刷词条材料、四档职级认证。
+// 这些都是「一次性铺满素材/货币」的按钮，和上面角色/武器/皮肤那批获取类按钮混排容易点错，
+// 所以单独渲染成一组，和通用按钮、新星开拓那一栏都隔开。
+const GROWTH_ACTIONS = [
+  // 2026-11-11 追加：纯货币没有 giveall 入口，走 money 命令（修复记录第 218 节）。
+  // 2026-11-27 排到本栏第一位：货币最常用，先铺钱再买材料。
+  { id: 'silver', cmd: 'money silver 10000000' },
+  // 武器突破 3 种（5-5-1-2/3/4 芳烃塑料/单极纤维/碳原子板）
+  // + 武器强化 3 种（5-2-1-2/3/4 优选/精致/珍稀强化套件），各 10000。
+  { id: 'weaponmat', cmd: 'weaponmat 10000' },
+  // 角色升级 3 种（5-1-1-2/3/4 普通/优秀/精英战斗记录），各 10000。
+  { id: 'roleexp', cmd: 'roleexp 10000' },
+  // 家具购买货币（4-1-6-5 奥普奖券）10000 个，宿舍家具商店结算用。
+  { id: 'housemat', cmd: 'housemat 10000' },
+  // 2026-11-13 追加：后勤刷词条材料各 1000（重修额度 / 人事额度 / 特定重修额度 /
+  // 重修申请 / 特级职级认证），物品口径见修复记录第 275 节。
+  { id: 'logisticsmat', cmd: 'logisticsmat 1000' },
+  // 2026-11-14 追加：四档职级认证各 10000（初级/中级/高级/特级）。
+  // 坐标 [5,3,1,1]~[5,3,1,4] 只靠 Level 区分，见 supplies.json 的 supportexp001~004。
+  { id: 'rankcert', cmd: 'rankcert 10000' },
+];
+
+// 宿舍玩法专属一栏（2026-11-27 追加）：心动水弹、冰趣蜜弹、推币大赢家、猜心对局、
+// 神经调理，都是基地宿舍区里的小游戏进度补全。和通用区那批「发东西」的按钮性质不同，
+// 单独一栏渲染，排在「材料与货币」下方。
+const DORM_ACTIONS = [
+  // 2026-11-12 追加：心动水弹（LoveGun / 温泉中心水枪）一键满级。等级落库在 101/15011，
+  // 不带参数即满级（15 级）；不碰领奖位图，奖励仍按正常一键领取（修复记录第 259 节）。
+  { id: 'watergun', cmd: 'watergun' },
+  // 2026-11-12 追加：心动水弹 20 条成就（20101~20120）一次性写满进度，只解锁不发奖，
+  // 奖励回活动界面「一键领取」（修复记录第 264 节）。
+  { id: 'watergunach', cmd: 'watergunach' },
+  // 2026-11-12 追加：猜心对局（GuessPoker）经验。等级不落库，命令直接对经验属性做加法，
+  // 点一次加 1320 经验，等级由经验换算（修复记录第 257 / 272 节）。
+  // 2026-11-13 起排到「冰趣蜜弹」之前，方便按小游戏顺序点。
+  { id: 'poker1320', cmd: 'guesspoker 1320' },
+  // 2026-11-13 追加：冰趣蜜弹（ThrowGame / 基地投掷）一键满级。等级落库在 101/17003，
+  // 级内经验 17004 清零；不碰领奖标记 17020+等级，奖励仍按正常领取（修复记录第 267 节）。
+  { id: 'throwlevel', cmd: 'throwlevel' },
+  // 2026-11-13 追加：推币大赢家（CoinPusher / 基地街机）一键满级。等级不落库，由累计经验
+  // 101/18002 换算，命令直接写满 12000；不碰领奖位图 18003（修复记录第 267 节）。
+  { id: 'arcadelevel', cmd: 'arcadelevel' },
+  // 2026-11-13 追加：神经调理等级奖励一次全领（等级直接写满 15，1~15 档奖励全发）。
+  { id: 'massagemax', cmd: 'massagemax' },
+];
+
+// 点击时统一在合并表里找按钮对应的命令，避免四组分开绑定。
+const ALL_QUICK_ACTIONS = QUICK_ACTIONS.concat(VIRCAPTURE_ACTIONS, GROWTH_ACTIONS, DORM_ACTIONS);
 
 // 活动代币合集（2026-11-11 追加，修复记录第 236 节）：每期活动商店的限量/无限代币。
 // 按钮执行 /acttoken <期号> 9999 @UID，代币口径见 CommandActToken.EraTokens。
@@ -3086,6 +3133,24 @@ async function renderConsole(prefill) {
         </button>`).join('')}
     </div>
     <p class="note">${esc(t('quick.questnote'))}</p>
+    <div class="quick-divider quick-divider-grow"><span>${esc(t('quick.group.grow'))}</span></div>
+    <div class="quick-grid quick-grid-grow">
+      ${GROWTH_ACTIONS.map((a) => `
+        <button class="quick-btn quick-btn-grow" data-quick="${esc(a.id)}">
+          <span class="quick-label">${esc(t('quick.' + a.id))}</span>
+          <span class="quick-cmd mono">${esc(a.cmd)}</span>
+        </button>`).join('')}
+    </div>
+    <p class="note">${esc(t('quick.group.growNote'))}</p>
+    <div class="quick-divider quick-divider-dorm"><span>${esc(t('quick.group.dorm'))}</span></div>
+    <div class="quick-grid quick-grid-dorm">
+      ${DORM_ACTIONS.map((a) => `
+        <button class="quick-btn quick-btn-dorm" data-quick="${esc(a.id)}">
+          <span class="quick-label">${esc(t('quick.' + a.id))}</span>
+          <span class="quick-cmd mono">${esc(a.cmd)}</span>
+        </button>`).join('')}
+    </div>
+    <p class="note">${esc(t('quick.group.dormNote'))}</p>
     <div class="quick-divider"><span>${esc(t('quick.group.vircapture'))}</span></div>
     <div class="quick-grid quick-grid-vircapture">
       ${VIRCAPTURE_ACTIONS.map((a) => `

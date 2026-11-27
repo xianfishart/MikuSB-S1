@@ -121,6 +121,11 @@ public class Weapon_Upgrade : ICallGSHandler
 		NtfSyncPlayer sync = new NtfSyncPlayer();
 		sync.Items.AddRange(syncItems);
 		TaskEventService.SyncType(player, 31, sync);
+		// 第 581 节：跨过「1 突满级」时补上配件解锁位，否则配件页永远显示「N 级解锁」。
+		if (WeaponPartAward.RepairWeaponUnlock(player, targetWeapon, sync))
+		{
+			DatabaseHelper.SaveDatabaseType(player.Data);
+		}
 		// 第 438 节：活动任务「日常训练 = 将任意武器升级 1 次」（Type 38），只有真的升了级才算。
 		if (newLevel > oldLevel)
 		{

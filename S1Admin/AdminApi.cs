@@ -241,6 +241,7 @@ public static class AdminApi
 				"console" => ConsoleCommand(body), 
 				"replay" => Replay(method, array, query, body), 
 				"loginbg" => LoginBg(method, body), 
+				"hudentry" => HudEntry(method, body), 
 				"eras" => Response.Json(ActivityWindowGuard.DescribeTrialIds()), 
 				"data" => DataProbe(), 
 				"setup" => Setup(), 
@@ -618,6 +619,55 @@ public static class AdminApi
 	/// GET  返回 era→编号 映射与当前编号；POST { era: N } 按期映射切换，
 	/// 或 { index: N } 直接按编号切换（0~30）。
 	/// </summary>
+	/// <summary>
+	/// 第 585 节：主界面「归途道标」入口显示开关。
+	/// GET  返回 {"ok":true,"return":true|false}
+	/// POST {"return":true|false} 写入并立即推给在线客户端；不带字段则按当前值取反。
+	/// </summary>
+	private static Response HudEntry(string method, string body)
+	{
+		if (method == "POST")
+		{
+			bool visible = HudEntrySwitch.ReturnVisible();
+			try
+			{
+				if (!string.IsNullOrWhiteSpace(body) && JsonNode.Parse(body) is JsonObject jsonObject && jsonObject["return"] is JsonValue jsonValue)
+				{
+					if (jsonValue.TryGetValue<bool>(out var b))
+					{
+						visible = b;
+					}
+					else if (jsonValue.TryGetValue<int>(out var n))
+					{
+						visible = n != 0;
+					}
+				}
+				else
+				{
+					visible = !visible;
+				}
+			}
+			catch
+			{
+				return Response.Json("{\"code\":1,\"message\":\"bad json\"}");
+			}
+			string message = HudEntrySwitch.SetReturnVisible(visible);
+			JsonObject result = new JsonObject
+			{
+				["ok"] = true,
+				["return"] = visible,
+				["message"] = message
+			};
+			return Response.Json(result.ToJsonString());
+		}
+		JsonObject state = new JsonObject
+		{
+			["ok"] = true,
+			["return"] = HudEntrySwitch.ReturnVisible()
+		};
+		return Response.Json(state.ToJsonString());
+	}
+
 	private static Response LoginBg(string method, string body)
 	{
 		if (method == "POST")

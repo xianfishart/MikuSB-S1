@@ -22,11 +22,15 @@ internal static class WeaponPartAward
 
 	private const uint ClaimedValue = 1u;
 
-	public const uint AwardUnlockBreak = 1u;
+	// 第 581 节（2026-11-27）：配件位的解锁等级是「武器 50 级」——客户端配件页写的就是
+	// 「50级解锁」。break_level_limit 里 Break0=20 / Break1=30 / Break2=40 / Break3=50 /
+	// Break4=60 / Break5=70 / Break6=80，所以 50 对应的是 Break3，不是 Break1。
+	// 原来这里传 1（=30 级），和界面文案对不上：30 级就判「可解锁」。
+	public const uint AwardUnlockBreak = 3u;
 
 	public static uint GetAwardUnlockLevel(WeaponUpgradeConfig config, int breakLimitId)
 	{
-		return config.GetWeaponMaxLevel(breakLimitId, 1u);
+		return config.GetWeaponMaxLevel(breakLimitId, AwardUnlockBreak);
 	}
 
 	public static List<int>? GetAward(ulong weaponTemplateId)
@@ -84,6 +88,39 @@ internal static class WeaponPartAward
 		player.Attributes.Set(112u, sid, value);
 		player.Attributes.SyncTo(sync, 112u, sid, value);
 		return true;
+	}
+
+	/// <summary>
+	/// 第 581 节（2026-11-27）：单把武器的配件位解锁。
+	///
+	/// 原版客户端在武器升到「1 突满级」（通常 50 级）之后才允许打开配件槽，
+	/// 判定依据是属性 Gid=112 / Sid=award[1]award[2] 的第 0 位。
+	/// 但服务端从来没有在升级路径上写过这一位，只有客户端主动调
+	/// Weapon_GetUpgradePartUnlock 才会补 —— 玩家用 GM 一键拉满或直接领的武器
+	/// 就永远停在「50 级解锁」，配件页全是灰的。
+	/// 这里给「升级 / 一键满级」用：达到解锁等级就补位，随本次同步下发给客户端。
+	/// </summary>
+	public static bool RepairWeaponUnlock(PlayerInstance player, GameWeaponInfo weapon, NtfSyncPlayer? sync)
+	{
+		if (player == null || weapon == null)
+		{
+			return false;
+		}
+		WeaponUpgradeConfig config = WeaponUpgradeConfig.Load();
+		if (!config.TryGetWeaponTemplate(weapon.TemplateId, out var template))
+		{
+			return false;
+		}
+		uint unlockLevel = GetAwardUnlockLevel(config, template.BreakLimitId);
+		if (unlockLevel == 0 || weapon.Level < unlockLevel)
+		{
+			return false;
+		}
+		if (sync == null)
+		{
+			return MarkUnlocked(player, weapon.TemplateId, new NtfSyncPlayer());
+		}
+		return MarkUnlocked(player, weapon.TemplateId, sync);
 	}
 
 	public static bool RepairUnlocked(PlayerInstance player)

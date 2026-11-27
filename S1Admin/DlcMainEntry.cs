@@ -118,7 +118,7 @@ public static class DlcMainEntry
 			long start = now - 3600;
 			long end = now + 2592000;
 			string sig = $"dm{eraId}-{now / 86400}";
-			Send(connection, DumpAndCall("dlc_fix", BuildFix(start, end, sig)));
+			Send(connection, DumpAndCall("dlc_fix", BuildFix(start, end, sig, eraId)));
 			Log($"{reason}: 第 {eraId} 期版本活动入口已下发（窗口 {start} ~ {end}）");
 		}
 	}
@@ -139,7 +139,7 @@ public static class DlcMainEntry
 	/// 另外 dmConfFix 会自检 GetCurConf 是否还带着正确窗口 —— 万一客户端重载配置把
 	/// 包装顶掉，这里会重新包一层，不再依赖 __DMV 的「一天只包一次」。
 	/// </summary>
-	private static string BuildFix(long start, long end, string sig)
+	private static string BuildFix(long start, long end, string sig, uint eraId)
 	{
 		List<string> list = new List<string>();
 		list.Add($"local S, E = {start}, {end}");
@@ -179,12 +179,20 @@ public static class DlcMainEntry
 		list.Add("for i = 1, #QUIET_BTNS do local w = m[QUIET_BTNS[i]] if w ~= nil then local ok, v = pcall(dmGetVis, w) if ok and v ~= 1 then pcall(W.Collapsed, w) end end end");
 		list.Add("end");
 		list.Add("local function dmConfFix()");
-		list.Add("if not (DLC_Logic and type(DLC_Logic.GetCurConf) == [[function]]) then return end");
-		list.Add("local ok, c = pcall(DLC_Logic.GetCurConf)");
-		list.Add("if ok and type(c) == [[table]] and (tonumber(c.nEnterStartTime) or 0) >= S - 86400 then return end");
-		list.Add("local D = DLC_Logic");
-		list.Add("local old = D.GetCurConf");
-		list.Add("D.GetCurConf = function(...) local cc = old(...) if type(cc) == [[table]] then cc.nEnterStartTime = S cc.nCloseEndTime = E end return cc end");
+		list.Add("if not (DLC_Logic and type(DLC_Logic.tbActivityConf) == [[table]]) then return end");
+		// 第 580 节（2026-11-27）：入口停在第 33 期、海报和倒计时全是 33 的根因。
+		// 旧写法是「pcall(GetCurConf) 拿到哪一期，就把 S/E 打在哪一期上」。
+		// 而原生 GetCurConf 是按「时间窗还没过」乱挑的（第 166 节的老毛病）：所有期在
+		// 真实时间里都过期之后，它挑中了 33 —— 于是 34 的窗口被写到 33 身上，
+		// 33 从此变成「开着」，下一轮原生又挑 33，自我固化，入口就永久停在第 33 期
+		// （海报是 33 期的图，倒计时用的却是 34 期的窗口，点进去也不对）。
+		// 现在反过来：只认 pin 的那一期，给它开窗；其余期只要「结束时间还在未来」
+		// （说明是被人为撑开的）就一律清零，让原生只剩唯一一个可挑的期。
+		list.Add("local T = DLC_Logic.tbActivityConf");
+		list.Add($"local EC = T[{eraId}]");
+		list.Add("if type(EC) ~= [[table]] then return end");
+		list.Add("EC.nEnterStartTime = S EC.nCloseEndTime = E");
+		list.Add("for _, v in pairs(T) do if type(v) == [[table]] and v ~= EC then if (tonumber(v.nCloseEndTime) or 0) > S then v.nEnterStartTime = 0 v.nCloseEndTime = 0 end end end");
 		list.Add("end");
 		// 第 355 节三改（卡顿）：这个函数会被 RefreshBtnState / UI.Open 高频调用，
 		// 必须走「极快路径」——先看缓存的主界面、再读 4 个按钮的 Visibility，

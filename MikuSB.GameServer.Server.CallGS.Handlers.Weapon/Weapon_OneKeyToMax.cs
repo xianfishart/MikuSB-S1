@@ -161,6 +161,11 @@ public class Weapon_OneKeyToMax : ICallGSHandler
 		bool bMaxUnlock = finalMaxLevel != 0 && weapon.Level >= finalMaxLevel;
 		NtfSyncPlayer sync = new NtfSyncPlayer();
 		sync.Items.AddRange(syncItems);
+		// 第 581 节：一键满级后同样补配件解锁位（跨过 1 突满级就该开槽）。
+		if (WeaponPartAward.RepairWeaponUnlock(player, weapon, sync))
+		{
+			DatabaseHelper.SaveDatabaseType(player.Data);
+		}
 		await CallGSRouter.SendScript(connection, "Weapon_OneKeyToMax", "{\"bMaxUnLock\":" + (bMaxUnlock ? "true" : "false") + "}", sync);
 	}
 

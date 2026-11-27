@@ -94,6 +94,15 @@ public static class ConsoleHost
 		catch
 		{
 		}
+		// 第 576 节：离线模式（Config/OfflineMode.json 的 enabled=true 时）
+		// 在本机起 443/80 假 serverlist，供断网启动的客户端取服务器列表。
+		try
+		{
+			OfflineServerlist.StartIfEnabled();
+		}
+		catch
+		{
+		}
 		try
 		{
 			Thread thread = new Thread(Loop);
